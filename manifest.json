@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+
+  "name": "TrueAI - Artificial Intelligence Powered Customer Support",
+  "description": "This extension generates responses to customer queries using artificial intelligence",
+  "version": "1.0",
+  "browser_action": {
+    "default_icon": "ai-icon.png",
+    "default_popup": "popup.html",
+    "default_title": "TrueAI - Automatic Customer Support"
+  },
+  "permissions": [
+    "activeTab",
+    "https://ajax.googleapis.com/"
+  ]
+}
