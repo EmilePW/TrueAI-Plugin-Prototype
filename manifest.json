@@ -19,6 +19,7 @@
     "persistent": false
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "https://mock-ai-api.herokuapp.com/suggestions/*"
   ]
 }

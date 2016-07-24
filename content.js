@@ -10,6 +10,8 @@ var selectors = {
     conversationNodes: '.conversation__bubble',
     // For pieces of text in the conversation
     conversationText: '.conversation__text p',
+    // For the message text editor
+    messageTerminal: '.composer-inbox p',
     // For messages sent by user
     user: '.o__user-comment'
   }
@@ -28,7 +30,7 @@ var platform = (function (url) {
 // Open port for sending to and receiving from parent extension
 var port = chrome.runtime.connect({name: 'conversationData'});
 port.onMessage.addListener(function (msg) {
-  console.log(msg);
+  document.querySelector(selectors[platform].messageTerminal).innerText = msg.response;
 })
 
 // Config for message observer
