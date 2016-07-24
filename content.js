@@ -25,6 +25,12 @@ var platform = (function (url) {
   }
 })(document.location.hostname);
 
+// Open port for sending to and receiving from parent extension
+var port = chrome.runtime.connect({name: 'conversationData'});
+port.onMessage.addListener(function (msg) {
+  console.log(msg);
+})
+
 // Config for message observer
 var config = { attributes: true, childList: true, characterData: true };
 
@@ -39,24 +45,15 @@ var checkForMessageBox = setInterval(function () {
   }
   else {
     // Message box not in the DOM
+    messageObserver.disconnect();
     console.log('Message box not in the DOM');
   }
 }, 1000)
 
 var messageObserver = new MutationObserver (function(mutations) {
-  if (false) {
-    // If message box has been removed from the DOM
-    console.log('Message Box removed from DOM');
-
-    // Restart check for message box
-  }
-  else {
-    // Cancel check for message box
-    clearInterval(checkForMessageBox);
-
     // Get the conversation content upon changes to the message box
-    getConversation(selectors[platform]);
-  }
+    var convoData = getConversation(selectors[platform]);
+    sendConversationData(convoData);
 });
 
 function getConversation (platform) {
@@ -102,9 +99,12 @@ function getConversation (platform) {
       })
     }
   }
+
+  return conversationInfo;
 }
 
-function sendContext (context) {
-// Send message to chrome extension
-  // chrome.extension.sendMessage(context)
+function sendConversationData (data) {
+  // Send message to chrome extension
+  port.postMessage({data: data});
 }
+
