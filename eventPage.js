@@ -1,10 +1,10 @@
 'use strict'
 
-// Open connection to conversationData port from content script
+// Open connection to messageData port from content script
 chrome.runtime.onConnect.addListener(function (port) {
-  console.assert(port.name === 'conversationData')
+  console.assert(port.name === 'messageData')
 
-  // Waiting for conversation data to be sent from the page
+  // Waiting for message data to be sent from the page
   port.onMessage.addListener(function (msg) {
     var req = new XMLHttpRequest()
 

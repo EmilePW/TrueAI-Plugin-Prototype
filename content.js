@@ -163,7 +163,7 @@ var messageInterface = (function (platformSelectors) {
 })(selectors)
 
 // Open port for sending to and receiving from parent extension
-var port = chrome.runtime.connect({name: 'conversationData'})
+var port = chrome.runtime.connect({name: 'messageData'})
     port.onMessage.addListener(function (msg) {
       // update terminal if empty
       if (messageInterface.isEmpty()) {
