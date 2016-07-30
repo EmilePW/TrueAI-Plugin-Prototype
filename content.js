@@ -69,8 +69,8 @@ var messageInterface = (function (platformSelectors) {
       // Get text content of a message DOM node
       var textNode = getNode('messageText', message)
 
-      if (textNode && textNode.innerText) {
-        return textNode.innerText
+      if (textNode && (textNode.innerText || textNode.hasChildNodes())) {
+        return textNode.innerText || 'glyph'
       } else {
         return undefined
       }
