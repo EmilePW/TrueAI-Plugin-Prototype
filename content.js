@@ -167,7 +167,6 @@ var port = chrome.runtime.connect({name: 'messageData'})
     port.onMessage.addListener(function (msg) {
       // update terminal if empty
       if (messageInterface.isEmpty()) {
-        console.log('ij')
         messageInterface.insertResponse(msg)
       }
     })
