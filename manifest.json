@@ -11,11 +11,11 @@
   "content_scripts": [
     {
       "matches": ["https://app.intercom.io/*"],
-      "js": ["content.js"]
+      "js": ["content.js", "jquery-3.1.0.min.js"]
     }
   ],
   "background": {
-    "scripts": ["eventPage.js"],
+    "scripts": ["eventPage.js", "jquery-3.1.0.min.js"],
     "persistent": false
   },
   "permissions": [

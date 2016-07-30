@@ -1,17 +1,17 @@
 'use strict'
 
-// Selectors for each platform which can use the TrueAI API
-// Allows for reuse of functions as different selectors can be passed as params for each platform
+// DOM selectors for each platform which can use the TrueAI API
+// Allows for reuse of functions across platforms as different selectors can be passed as params for each platform
 var selectors = {
   intercom: {
     // For messages sent by admin
     admin: '.o__admin-comment',
     // For conversation box
-    conversation: '.conversation__stream',
+    messageBox: '.conversation__stream',
     // For message blocks in a conversation
-    conversationNodes: '.conversation__bubble',
+    message: '.conversation__bubble',
     // For pieces of text in the conversation
-    conversationText: '.conversation__text p',
+    messageText: '.conversation__text p',
     // For the message text editor
     messageTerminal: '.composer-inbox p',
     // For messages sent by user
@@ -19,91 +19,143 @@ var selectors = {
   }
 }
 
-// Identify platform from url
-var platform = (function (url) {
-  if (/(intercom.io)/.test(url)) {
-    return 'intercom'
-  } else {
-    return undefined
+var messageInterface = (function (platformSelectors) {
+  // Identify platform from url
+  var platform = (function (url) {
+    if (/(intercom.io)/.test(url)) {
+      return 'intercom'
+    } else {
+      return undefined
+    }
+  })(document.location.hostname)
+
+  // Get the DOM selectors for this platform
+  var selectors = platformSelectors[platform]
+  
+  function getNode (selector, parent) {
+    parent = parent || document
+
+    return parent.querySelector(selectors[selector])
   }
-})(document.location.hostname)
+
+  function getNodes (selector, parent) {
+    parent = parent || document
+
+    return parent.querySelectorAll(selectors[selector])
+  }
+
+  function isAvailable () {
+    // Checks DOM for message box
+    return !!getNode('messageBox')
+  }
+
+  function initialise () {
+    this.messageBox = getNode('messageBox')
+  }
+
+  function getConversation () {
+    function getSenderType (message) {
+      // Specify whether the message is from a user, an admin or unknown
+      if (!!getNode('admin', message)) {
+        return 'admin'
+      } else if (!!getNode('user', message)) {
+        return 'user'
+      } else {
+        return 'unspecified'
+      }
+    }
+
+    function getText (message) {
+      // Get text content of a message DOM node
+      var textNode = getNode('messageText', message)
+
+      if (textNode && textNode.innerText) {
+        return textNode.innerText
+      } else {
+        return undefined
+      }
+    }
+    
+    var c = []
+
+    // Select all elements which contain conversation text, not yet sorted by whether user or admin
+    var messages = getNodes('message')
+
+    for (var i = 0; i < messages.length; i++) {
+      if (getText(messages[i])) {
+        c.push({
+          node: messages[i],
+          senderType: getSenderType(messages[i]),
+          text: getText(messages[i])
+        })
+      }
+    }
+
+    return c
+  }
+
+  function getContext () {
+    var lastMessage = getConversation().pop()
+
+    if (lastMessage.senderType === 'user') {
+      return lastMessage.text
+    } else {
+      return false
+    }
+  }
+
+  function sendContext () {
+    var context = getContext()
+
+    if (context) {
+      // Context must be a message from a user
+      // Send message to chrome extension
+      port.postMessage({data: context.text})
+    }
+  }
+
+  function insertResponse (response) {
+    var messageTerminal = getNode('messageTerminal')
+    messageTerminal.innerText = response.responseText
+  }
+
+  return {
+    isAvailable: isAvailable,
+    initialise: initialise,
+    sendContext: sendContext,
+    insertResponse: insertResponse,
+    messageBox: undefined
+  }
+})(selectors)
 
 // Open port for sending to and receiving from parent extension
 var port = chrome.runtime.connect({name: 'conversationData'})
 port.onMessage.addListener(function (msg) {
-  document.querySelector(selectors[platform].messageTerminal).innerText = msg.response
+  // update terminal
+  messageInterface.insertResponse(msg)
 })
 
-// Config for message observer
-var config = { attributes: true, childList: true, characterData: true }
+// Send context to the API on changes in the message box (i.e. new messages)
+var messageObserver = new MutationObserver(messageInterface.sendContext)
 
 // Don't attempt to get messages before message box is in the DOM
 // Check if message box is in the DOM every second
 var checkForMessageBox = setInterval(function () {
-  var messageBox = document.querySelector(selectors[platform].conversation)
+  if (messageInterface.isAvailable()) {
+    messageInterface.initialise()
 
-  if (messageBox) {
+    // Watch for DOM and data changes on the messageBox and its children
+    var observerConfig = { childList: true, subtree: true }
+
     // Observe updates to conversation
-    messageObserver.observe(messageBox, config)
+    messageObserver.observe(messageInterface.messageBox, observerConfig)
   } else {
     // Message box not in the DOM so no need to observe changes
     messageObserver.disconnect()
   }
 }, 1000)
 
-var messageObserver = new MutationObserver(function (mutations) {
-  // Get the conversation content upon changes to the message box
-  var convoData = getConversation(selectors[platform])
-  sendConversationData(convoData)
-})
 
-function getConversation (platform) {
-  // Select all elements which contain conversation text, not yet sorted by whether user or admin
-  var conversationNodes = document.querySelector(platform.conversation)
-                                  .querySelectorAll(platform.conversationNodes)
 
-  function getSenderType (message) {
-    // Specify whether the message is from a user, an admin or unknown
-    if (message.querySelector(platform.admin)) {
-      return 'admin'
-    } else if (message.querySelector(platform.user)) {
-      return 'user'
-    } else {
-      return 'unspecified'
-    }
-  }
 
-  function getText (node) {
-    // Get text content of a message DOM node
-    var textNode = node.querySelector(platform.conversationText)
-
-    if (textNode && textNode.innerText) {
-      return textNode.innerText
-    } else {
-      return undefined
-    }
-  }
-
-  var conversationInfo = []
-
-  for (var i = 0; i < conversationNodes.length - 1; i++) {
-    var text = getText(conversationNodes[i])
-
-    // Only add the message to the conversation array if there is text
-    // This avoids e.g. DOM nodes where the user is typing but the actual message does not exist yet
-    if (text) {
-      conversationInfo.push({
-        text: text,
-        senderType: getSenderType(conversationNodes[i])
-      })
-    }
-  }
-
-  return conversationInfo
-}
-
-function sendConversationData (data) {
-  // Send message to chrome extension
-  port.postMessage({data: data})
-}
 
