@@ -125,7 +125,10 @@ var messageInterface = (function (platformSelectors) {
     if (context) {
       // Context must be a message from a user
       // Send message to chrome extension
-      port.postMessage({data: context.text})
+      port.postMessage({
+        context: context.text,
+        companyName: platform
+      })
     }
   }
 

@@ -5,11 +5,11 @@ chrome.runtime.onConnect.addListener(function (port) {
   console.assert(port.name === 'messageData')
 
   // Waiting for message data to be sent from the page
-  port.onMessage.addListener(function (msg) {
+  port.onMessage.addListener(function (data) {
     var req = new XMLHttpRequest()
 
     // Open mock API to get responses to messages
-    req.open('GET', 'https://mock-ai-api.herokuapp.com/suggestions/?q=' + msg + '&company=intercom')
+    req.open('GET', 'https://mock-ai-api.herokuapp.com/suggestions/?q=' + data.context + '&company=' + data.companyName)
 
     req.onload = function () {
       if (this.status >= 200 && this.status < 300) {
