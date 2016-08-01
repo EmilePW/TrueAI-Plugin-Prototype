@@ -39,6 +39,7 @@ var messageInterface = (function (platformSelectors) {
   var selectors = platformSelectors[platform]
 
   function getNode (selector, parent) {
+    // This function just makes the code cleaner
     parent = parent || document
 
     return parent.querySelector(selectors[selector])
@@ -58,22 +59,25 @@ var messageInterface = (function (platformSelectors) {
   function initialise () {
     this.messageBox = getNode('messageBox')
 
-    // Reference for position to insert suggestions
+    // Position to insert suggestions
     if (!this.suggestionArea) {
       var suggestionPosition = getNode('suggestionPosition')
+
       var suggestionArea = document.createElement('section')
-
-      suggestionArea.className = 'trueai-suggestions-area'
+      suggestionArea.className = 'trueai-suggestions-area-' + platform
+      
       suggestionPosition.appendChild(suggestionArea)
-
       this.suggestionArea = suggestionArea
     }
 
+    // Remove suggestions when agent sends a reply
     this.sendMessage = getNode('sendMessage')
     this.sendMessage.addEventListener('click', removeSuggestions.bind(this))
   }
 
   function getConversation () {
+    // Returns an array of objects, which represent the messages in chronolgical order
+
     function getSenderType (message) {
       // Specify whether the message is from a user, an admin or unknown
       if (getNode('admin', message)) {
@@ -97,14 +101,11 @@ var messageInterface = (function (platformSelectors) {
     }
 
     var conversation = []
-
-    // Select all elements which contain conversation text, not yet sorted by whether user or admin
     var messages = getNodes('message')
 
     for (var i = 0; i < messages.length; i++) {
       if (getText(messages[i])) {
         conversation.push({
-          node: messages[i],
           senderType: getSenderType(messages[i]),
           text: getText(messages[i])
         })
@@ -115,9 +116,10 @@ var messageInterface = (function (platformSelectors) {
   }
 
   function getContext () {
+    // Get the last message from a user
     var lastMessage = getConversation().pop()
 
-    if (lastMessage.senderType === 'user') {
+    if (lastMessage && lastMessage.senderType === 'user') {
       return lastMessage.text
     } else {
       return false
@@ -135,13 +137,6 @@ var messageInterface = (function (platformSelectors) {
         companyName: platform
       })
     }
-  }
-
-  function isMessageTerminalEmpty () {
-    // Boolean for whether the message terminal is 'empty'
-    // Max length is 1 as the text editors often contain special characters when no text is visible
-    var messageTerminal = getNode('messageTerminal')
-    return messageTerminal.innerText.length <= 1
   }
 
   function insertResponse (response) {
@@ -200,7 +195,6 @@ var messageInterface = (function (platformSelectors) {
     isAvailable: isAvailable,
     initialise: initialise,
     sendContext: sendContext,
-    isMessageTerminalEmpty: isMessageTerminalEmpty,
     hasSuggestions: hasSuggestions,
     insertSuggestions: insertSuggestions,
     messageBox: undefined,
@@ -211,7 +205,7 @@ var messageInterface = (function (platformSelectors) {
 // Open port for sending to and receiving from event page
 var port = chrome.runtime.connect({name: 'messageData'})
 port.onMessage.addListener(function (msg) {
-  // update terminal if empty
+  // Add suggestions
   if (!messageInterface.hasSuggestions()) {
     messageInterface.insertSuggestions(msg)
   }
