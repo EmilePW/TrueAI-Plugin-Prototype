@@ -37,7 +37,7 @@ var messageInterface = (function (platformSelectors) {
 
   // Get the DOM selectors for this platform
   var selectors = platformSelectors[platform]
-  
+
   function getNode (selector, parent) {
     parent = parent || document
 
@@ -62,9 +62,9 @@ var messageInterface = (function (platformSelectors) {
     if (!this.suggestionArea) {
       var suggestionPosition = getNode('suggestionPosition')
       var suggestionArea = document.createElement('section')
-          
-          suggestionArea.className = 'trueai-suggestions-area'
-          suggestionPosition.appendChild(suggestionArea)
+
+      suggestionArea.className = 'trueai-suggestions-area'
+      suggestionPosition.appendChild(suggestionArea)
 
       this.suggestionArea = suggestionArea
     }
@@ -76,9 +76,9 @@ var messageInterface = (function (platformSelectors) {
   function getConversation () {
     function getSenderType (message) {
       // Specify whether the message is from a user, an admin or unknown
-      if (!!getNode('admin', message)) {
+      if (getNode('admin', message)) {
         return 'admin'
-      } else if (!!getNode('user', message)) {
+      } else if (getNode('user', message)) {
         return 'user'
       } else {
         return 'unspecified'
@@ -95,7 +95,7 @@ var messageInterface = (function (platformSelectors) {
         return undefined
       }
     }
-    
+
     var conversation = []
 
     // Select all elements which contain conversation text, not yet sorted by whether user or admin
@@ -147,7 +147,7 @@ var messageInterface = (function (platformSelectors) {
   function insertResponse (response) {
     var messageTerminal = getNode('messageTerminal')
     messageTerminal.innerText = response
-    
+
     // This fixes bug on intercom where no text is sent until the editor is clicked on
     if (platform === 'intercom') {
       var messageTerminalContainer = getNode('messageTerminalContainer')
@@ -160,29 +160,29 @@ var messageInterface = (function (platformSelectors) {
     var suggestionArea = this.suggestionArea
 
     suggestions.forEach(function (text) {
-        /* React.js would be nice here if it gets any larger */
+      /* React.js would be nice here if it gets any larger */
 
-        // Sticker to be appended to inserted responses to indicate they came from TrueAI
-        var sticker = document.createElement('span')
-            sticker.className = 'trueai-sticker'
+      // Sticker to be appended to inserted responses to indicate they came from TrueAI
+      var sticker = document.createElement('span')
+      sticker.className = 'trueai-sticker'
 
-        var logo = document.createElement('img')
-            logo.className = 'trueai-logo'
-            logo.src = 'https://pbs.twimg.com/profile_images/728184818115215360/C-OSDu91.jpg'
-            sticker.appendChild(logo)
+      var logo = document.createElement('img')
+      logo.className = 'trueai-logo'
+      logo.src = 'https://pbs.twimg.com/profile_images/728184818115215360/C-OSDu91.jpg'
+      sticker.appendChild(logo)
 
-        var suggestionText = document.createElement('span')
-            suggestionText.className = 'trueai-suggestion-text'
-            suggestionText.innerText = text
+      var suggestionText = document.createElement('span')
+      suggestionText.className = 'trueai-suggestion-text'
+      suggestionText.innerText = text
 
-        // Clickable button to display and add suggestions
-        var suggestionBox = document.createElement('button')
-            suggestionBox.className = 'trueai-suggestion-' + platform
-            suggestionBox.appendChild(suggestionText)
-            suggestionBox.appendChild(sticker)
-            suggestionBox.addEventListener('click', function () { insertResponse(text) })
+      // Clickable button to display and add suggestions
+      var suggestionBox = document.createElement('button')
+      suggestionBox.className = 'trueai-suggestion-' + platform
+      suggestionBox.appendChild(suggestionText)
+      suggestionBox.appendChild(sticker)
+      suggestionBox.addEventListener('click', function () { insertResponse(text) })
 
-        suggestionArea.appendChild(suggestionBox)
+      suggestionArea.appendChild(suggestionBox)
     })
   }
 
@@ -192,7 +192,7 @@ var messageInterface = (function (platformSelectors) {
 
   function removeSuggestions () {
     while (this.suggestionArea.lastChild) {
-      this.suggestionArea.removeChild(this.suggestionArea.lastChild);
+      this.suggestionArea.removeChild(this.suggestionArea.lastChild)
     }
   }
 
@@ -210,12 +210,12 @@ var messageInterface = (function (platformSelectors) {
 
 // Open port for sending to and receiving from event page
 var port = chrome.runtime.connect({name: 'messageData'})
-    port.onMessage.addListener(function (msg) {
-      // update terminal if empty
-      if (!messageInterface.hasSuggestions()) {
-        messageInterface.insertSuggestions(msg)
-      }
-    })
+port.onMessage.addListener(function (msg) {
+  // update terminal if empty
+  if (!messageInterface.hasSuggestions()) {
+    messageInterface.insertSuggestions(msg)
+  }
+})
 
 // Send context to the API on changes in the message box (i.e. new messages)
 var messageObserver = new MutationObserver(messageInterface.sendContext)
