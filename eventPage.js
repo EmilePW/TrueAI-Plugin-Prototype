@@ -14,17 +14,15 @@ chrome.runtime.onConnect.addListener(function (port) {
     req.onload = function () {
       if (this.status >= 200 && this.status < 300) {
         // Send the 'AI' response back to the content script to be injected into the page
-        var responseText = JSON.parse(this.response)
-        port.postMessage({responseText: responseText})
+        var responses = JSON.parse(this.response)
+        port.postMessage(responses)
       } else {
-        port.postMessage({error: this.statusText})
+        console.log('Error: ' + this.statusText)
       }
     }
 
     req.onerror = function (err) {
-      port.postMessage({
-        error: err
-      })
+      console.log('Error: ' + err)
     }
 
     req.send()

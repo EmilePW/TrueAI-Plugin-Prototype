@@ -5,17 +5,18 @@
   "description": "This extension generates responses to customer queries using artificial intelligence",
   "version": "1.0",
   "browser_action": {
-    "default_icon": "ai-icon.png",
+    "default_icon": "trueai-plugin-icon.png",
     "default_title": "TrueAI - Automatic Customer Support"
   },
   "content_scripts": [
     {
       "matches": ["https://app.intercom.io/*"],
-      "js": ["content.js", "jquery-3.1.0.min.js"]
+      "css": ["suggestions.css"],
+      "js": ["content.js"]
     }
   ],
   "background": {
-    "scripts": ["eventPage.js", "jquery-3.1.0.min.js"],
+    "scripts": ["eventPage.js"],
     "persistent": false
   },
   "permissions": [

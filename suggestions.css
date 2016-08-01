@@ -1,0 +1,49 @@
+.trueai-suggestions-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+.trueai-suggestion-intercom {
+  width: 300px;
+  height: 60px;
+  border: 1px solid #c9d7df;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+  padding: 5px;
+  margin: 10px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #37474F;
+  font-family: 'Helvetica';
+}
+
+.trueai-suggestion-intercom > .trueai-suggestion-text {
+  width: 80%;
+  height: 40px;
+  padding: 5px;
+  float: left;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  border-right: 1px solid #c9d7df;
+}
+
+.trueai-suggestion-intercom > .trueai-sticker {
+  width: 20%;
+  height: 40px;
+  float: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.trueai-suggestion-intercom > .trueai-sticker > .trueai-logo {
+  height: 40px;
+  opacity: 0.7;
+}
